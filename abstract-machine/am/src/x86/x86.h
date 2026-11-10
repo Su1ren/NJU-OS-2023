@@ -220,32 +220,32 @@ typedef struct {
 
 static inline uint8_t inb(int port) {
   uint8_t data;
-  asm volatile ("inb %1, %0" : "=a"(data) : "d"((uint16_t)port));
+  asm volatile ("inb %1, %0" : "=a"(data) : "d"((uint16_t)port) : "memory");
   return data;
 }
 
 static inline uint16_t inw(int port) {
   uint16_t data;
-  asm volatile ("inw %1, %0" : "=a"(data) : "d"((uint16_t)port));
+  asm volatile ("inw %1, %0" : "=a"(data) : "d"((uint16_t)port) : "memory");
   return data;
 }
 
 static inline uint32_t inl(int port) {
   uint32_t data;
-  asm volatile ("inl %1, %0" : "=a"(data) : "d"((uint16_t)port));
+  asm volatile ("inl %1, %0" : "=a"(data) : "d"((uint16_t)port) : "memory");
   return data;
 }
 
 static inline void outb(int port, uint8_t data) {
-  asm volatile ("outb %%al, %%dx" : : "a"(data), "d"((uint16_t)port));
+  asm volatile ("outb %%al, %%dx" : : "a"(data), "d"((uint16_t)port) : "memory");
 }
 
 static inline void outw(int port, uint16_t data) {
-  asm volatile ("outw %%ax, %%dx" : : "a"(data), "d"((uint16_t)port));
+  asm volatile ("outw %%ax, %%dx" : : "a"(data), "d"((uint16_t)port) : "memory");
 }
 
 static inline void outl(int port, uint32_t data) {
-  asm volatile ("outl %%eax, %%dx" : : "a"(data), "d"((uint16_t)port));
+  asm volatile ("outl %%eax, %%dx" : : "a"(data), "d"((uint16_t)port) : "memory");
 }
 
 static inline void cli() {
