@@ -1,13 +1,8 @@
 #include "image.h"
 #include <am.h>
 #include <amdev.h>
-#include <klib-macros.h>
-#include <klib.h>
 
-#define SIDE 16
 #define TILE 32 // 每次绘制的 tile 大小为 32x32 像素
-
-static int w, h; // Screen size
 
 #define KEYNAME(key) [AM_KEY_##key] = #key,
 static const char *key_names[] = {AM_KEYS(KEYNAME)};
@@ -17,37 +12,7 @@ static inline void puts(const char *s) {
     putch(*s);
 }
 
-// 读取键盘事件并打印按键名称
-void print_key() {
-  AM_INPUT_KEYBRD_T event = {.keycode = AM_KEY_NONE};
-  ioe_read(AM_INPUT_KEYBRD, &event);
-  if (event.keycode != AM_KEY_NONE && event.keydown) {
-    puts("Key pressed: ");
-    puts(key_names[event.keycode]);
-    puts("\n");
-  }
-}
-
-// 在屏幕的指定位置绘制一块指定颜色的矩形区域
-static void draw_tile(int x, int y, int w, int h, uint32_t color) {
-  uint32_t pixels[w * h]; // WARNING: large stack-allocated memory
-  AM_GPU_FBDRAW_T event = {
-      .x = x,
-      .y = y,
-      .w = w,
-      .h = h,
-      .sync = 1, // sync 表示是否等待绘制完成，1 表示等待，0 表示不等待
-      .pixels = pixels,
-  };
-  for (int i = 0; i < w * h; i++) {
-    pixels[i] = color;
-  } // 将 pixels 数组填充为指定颜色
-  // 调用 ioe_write 发送绘制命令到 GPU，ioe_write 会将 event 结构体传递给 GPU
-  // 进行处理
-  ioe_write(AM_GPU_FBDRAW, &event);
-}
-
-// 绘制一个纯色的区域
+// 把源图按最近邻缩放到屏幕
 static void draw_image(void) {
   AM_GPU_CONFIG_T info = {0};
   ioe_read(AM_GPU_CONFIG, &info);
@@ -81,22 +46,6 @@ static void draw_image(void) {
   }
 }
 
-// 在屏幕上绘制一个棋盘格图案
-void splash() {
-  AM_GPU_CONFIG_T info = {0};
-  ioe_read(AM_GPU_CONFIG, &info);
-  w = info.width;
-  h = info.height;
-
-  for (int x = 0; x * SIDE <= w; x++) {
-    for (int y = 0; y * SIDE <= h; y++) {
-      if ((x & 1) ^ (y & 1)) {
-        draw_tile(x * SIDE, y * SIDE, SIDE, SIDE, 0xffffff); // white
-      }
-    }
-  }
-}
-
 // Operating system is a C program!
 int main(const char *args) {
   ioe_init();
@@ -105,7 +54,6 @@ int main(const char *args) {
   puts(args); // make run mainargs=xxx
   puts("\"\n");
 
-  // splash();
   draw_image();
 
   puts("Press any key to see its key code...\n");
@@ -116,7 +64,7 @@ int main(const char *args) {
     if (ev.keydown && ev.keycode == AM_KEY_ESCAPE) {
       halt(0);
     }
-    // 读取键盘事件并打印按键名称
+    // 打印其他按键的名称
     if (ev.keycode != AM_KEY_NONE && ev.keydown) {
       puts("Key pressed: ");
       puts(key_names[ev.keycode]);
